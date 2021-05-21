@@ -2,9 +2,10 @@
 
 namespace App\Repository\Eloquent;
 
-use App\Repository\Contracts\EloquentRepositoryInterface;
+use App\Repository\EloquentRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseRepository implements EloquentRepositoryInterface
 {
@@ -22,21 +23,24 @@ abstract class BaseRepository implements EloquentRepositoryInterface
     $this->model = $model;
   }
 
-  public function all(): Collection
+  public function all(): Collection|array
   {
-    return $this->model->paginate(15);
+    return $this->model->paginate(15)->all();
   }
 
-  public function search(string $query): Collection
+  public function search(string $search): Collection|array
   {
     $columns = $this->model->getFillable();
-    $model = $this->model;
 
-    foreach ($columns as $column) {
-      $model->where($column, 'ilike', "%$query%");
-    }
-
-    return $model->paginate(15);
+    return $this->model
+      ->where(
+        function ($query) use ($columns, $search) {
+          foreach ($columns as $field)
+            $query->orWhere($field, 'ilike', "%$search%");
+        }
+      )
+      ->paginate(15)
+      ->all();
   }
 
   public function findById(int $id): ?Model

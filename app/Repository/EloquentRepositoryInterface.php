@@ -15,6 +15,14 @@ interface EloquentRepositoryInterface
   public function all(): Collection;
 
   /**
+   * Gets all models with query.
+   * 
+   * @param string $query
+   * @return Illuminate\Database\Eloquent\Collection;
+   */
+  public function search(string $query): Collection;
+
+  /**
    * Find model by id.
    * 
    * @param int $id

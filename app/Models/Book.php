@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Book extends Model
 {
     use HasFactory;
+
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        'title',
+        'author'
+    ];
 }

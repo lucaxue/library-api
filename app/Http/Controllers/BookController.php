@@ -10,10 +10,19 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param \Illuminate\Http\Request
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->query('search');
+
+        if ($search) {
+            return Book::where('title', 'ilike', "%$search%")
+                ->orWhere('author', 'ilike', "%$search%")
+                ->get();
+        }
+
         return Book::all();
     }
 
@@ -50,6 +59,7 @@ class BookController extends Controller
     {
         $book = Book::find($id);
         $book->update($request->all());
+
         return $book;
     }
 
@@ -62,6 +72,7 @@ class BookController extends Controller
     public function destroy($id)
     {
         Book::destroy($id);
+
         return response("Book at id of $id is successfully deleted.", 200);
     }
 }

@@ -20,10 +20,10 @@ class BookController extends Controller
         if ($search) {
             return Book::where('title', 'ilike', "%$search%")
                 ->orWhere('author', 'ilike', "%$search%")
-                ->get();
+                ->paginate(15);
         }
 
-        return Book::all();
+        return Book::paginate(15);
     }
 
     /**

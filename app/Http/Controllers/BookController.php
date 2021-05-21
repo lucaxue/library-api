@@ -3,48 +3,53 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use App\Models\Book;
+use App\Repository\BookRepositoryInterface;
 
 class BookController extends Controller
 {
+    private BookRepositoryInterface $_userRepository;
+
+    public function __construct(BookRepositoryInterface $userRepository)
+    {
+        $this->_userRepository = $userRepository;
+    }
+
     /**
      * Display a listing of the resource.
      * 
      * @param Illuminate\Http\Request $request
-     * @return Illuminate\Http\Response
+     * @return Illuminate\Http\JsonResponse
      */
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
-        $search = $request->query('search');
+        $query = $request->query('search');
 
-        if ($search) {
-            $books = Book::where('title', 'ilike', "%$search%")
-                ->orWhere('author', 'ilike', "%$search%")
-                ->paginate(15);
-        }
+        $books = $query ?
+            $this->_userRepository->search($query) :
+            $this->_userRepository->all();
 
-        $books = Book::paginate(15);
-
-        return response($books);
+        return response()->json($books, 200);
     }
 
     /**
      * Store a newly created resource in storage.
      * 
      * @param Illuminate\Http\Request $request
-     * @return Illuminate\Http\Response
+     * @return Illuminate\Http\JsonResponse
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'title' => 'required',
             'author' => 'required'
         ]);
 
-        $book = Book::create($request->all());
+        $book = $this->_userRepository->create($request->all());
 
-        return response($book);
+        return response()->json($book, 200);
     }
 
     /**
@@ -53,11 +58,11 @@ class BookController extends Controller
      * @param int $id
      * @return Illuminate\Http\Response
      */
-    public function show(int $id): Response
+    public function show(int $id): JsonResponse
     {
-        $book = Book::find($id);
+        $book = $this->_userRepository->findById($id);
 
-        return response($book);
+        return response()->json($book, 200);
     }
 
     /**
@@ -65,31 +70,34 @@ class BookController extends Controller
      * 
      * @param Illuminate\Http\Request $request
      * @param int $id
-     * @return Illuminate\Http\Response
+     * @return Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, int $id): Response
+    public function update(Request $request, int $id): JsonResponse
     {
         $request->validate([
             'title' => 'required',
             'author' => 'required'
         ]);
 
-        $book = Book::find($id);
-        $book->update($request->all());
+        $book = $this->_userRepository->update($request->all(), $id);
 
-        return response($book);
+        return response()->json($book, 200);
     }
 
     /**
      * Remove the specified resource from storage.
      * 
      * @param int $id
-     * @return Illuminate\
+     * @return Illuminate\Http\JsonResponse
      */
-    public function destroy(int $id): Response
+    public function destroy(int $id): JsonResponse
     {
-        Book::destroy($id);
+        $isDeleted = $this->_userRepository->deleteById($id);
 
-        return response("Book at id of $id is successfully deleted.");
+        $message =  $isDeleted ?
+            [["success" => "book of id $id has been deleted."], 200] :
+            [["error" => "book of id $id does not exist."], 400];
+
+        return response()->json(...$message);
     }
 }

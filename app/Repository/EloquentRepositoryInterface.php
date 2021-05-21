@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository\Contracts;
+namespace App\Repository;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -10,17 +10,17 @@ interface EloquentRepositoryInterface
   /**
    * Gets all models.
    * 
-   * @return Illuminate\Database\Eloquent\Collection;
+   * @return Illuminate\Database\Eloquent\Collection|array;
    */
-  public function all(): Collection;
+  public function all(): Collection|array;
 
   /**
    * Gets all models with query.
    * 
-   * @param string $query
-   * @return Illuminate\Database\Eloquent\Collection;
+   * @param string $search
+   * @return Illuminate\Database\Eloquent\Collection|array;
    */
-  public function search(string $query): Collection;
+  public function search(string $search): Collection|array;
 
   /**
    * Find model by id.

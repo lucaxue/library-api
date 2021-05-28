@@ -8,11 +8,11 @@ use App\Repository\BookRepositoryInterface;
 
 class BookController extends Controller
 {
-    private BookRepositoryInterface $_userRepository;
+    private BookRepositoryInterface $bookRepository;
 
-    public function __construct(BookRepositoryInterface $userRepository)
+    public function __construct(BookRepositoryInterface $bookRepository)
     {
-        $this->_userRepository = $userRepository;
+        $this->bookRepository = $bookRepository;
     }
 
     /**
@@ -26,8 +26,8 @@ class BookController extends Controller
         $query = $request->query('search');
 
         $books = $query ?
-            $this->_userRepository->search($query) :
-            $this->_userRepository->all();
+            $this->bookRepository->search($query) :
+            $this->bookRepository->all();
 
         return response()->json($books, 200);
     }
@@ -45,7 +45,7 @@ class BookController extends Controller
             'author' => 'required'
         ]);
 
-        $book = $this->_userRepository->create($request->all());
+        $book = $this->bookRepository->create($request->all());
 
         return response()->json($book, 200);
     }
@@ -58,7 +58,7 @@ class BookController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $book = $this->_userRepository->findById($id);
+        $book = $this->bookRepository->findById($id);
 
         return response()->json($book, 200);
     }
@@ -77,7 +77,7 @@ class BookController extends Controller
             'author' => 'required'
         ]);
 
-        $book = $this->_userRepository->update($request->all(), $id);
+        $book = $this->bookRepository->update($request->all(), $id);
 
         return response()->json($book, 200);
     }
@@ -90,7 +90,7 @@ class BookController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        $isDeleted = $this->_userRepository->deleteById($id);
+        $isDeleted = $this->bookRepository->deleteById($id);
 
         $message =  $isDeleted ?
             [["success" => "book of id $id has been deleted."], 200] :

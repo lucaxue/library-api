@@ -5,7 +5,6 @@ namespace App\Repository\Eloquent;
 use App\Repository\EloquentRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseRepository implements EloquentRepositoryInterface
 {
@@ -36,7 +35,7 @@ abstract class BaseRepository implements EloquentRepositoryInterface
       ->where(
         function ($query) use ($columns, $search) {
           foreach ($columns as $field)
-            $query->orWhere($field, 'ilike', "%$search%");
+            $query->orWhere(strtolower($field), 'like', strtolower("%$search%"));
         }
       )
       ->paginate(15)

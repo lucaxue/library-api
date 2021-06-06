@@ -3,14 +3,11 @@
 namespace Tests\Unit;
 
 use App\Repository\BookRepositoryInterface;
-use Mockery;
-use Mockery\MockInterface;
 use Tests\TestCase;
 
 class BookControllerTest extends TestCase
 {
-
-    private $books = [
+    protected $books = [
         [
             "id" => 1,
             "title" => "Nice Book Title",
@@ -26,25 +23,18 @@ class BookControllerTest extends TestCase
             "updated_at" => "2021-05-21T12:16:51.000000Z",
         ],
     ];
-    /**
-     * A basic unit test example.
-     *
-     * @return void
-     */
-    public function testIndex()
+
+    /** @test */
+    public function it_can_index_books()
     {
-        $this->instance(
-            BookRepositoryInterface::class,
-            Mockery::mock(
-                BookRepositoryInterface::class,
-                fn(MockInterface $mock) => $mock
-                    ->shouldReceive('all')
-                    ->andReturn($this->books)
-            )
-        );
+        $repository = $this->createMock(BookRepositoryInterface::class);
+        $this->instance(BookRepositoryInterface::class, $repository);
+
+        $repository->expects($this->once())
+            ->method('all')
+            ->willReturn($this->books);
 
         $response = $this->get('api/books');
-
         $response->assertJson($this->books);
         $response->assertStatus(200);
     }

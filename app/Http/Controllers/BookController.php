@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Repository\Eloquent\BookRepository;
+use App\Repositories\Eloquent\BookRepository;
 
 class BookController extends Controller
 {
@@ -36,7 +36,7 @@ class BookController extends Controller
     {
         $book = $this->repository->findById($id);
 
-        if (! $book) {
+        if (!$book) {
             return response()->json(
                 ["error" => "book of id $id does not exist."],
                 JsonResponse::HTTP_NOT_FOUND
@@ -60,7 +60,7 @@ class BookController extends Controller
     {
         $deleted = $this->repository->deleteById($id);
 
-        if (! $deleted) {
+        if (!$deleted) {
             return response()->json(
                 ["error" => "book of id $id does not exist."],
                 JsonResponse::HTTP_NOT_FOUND

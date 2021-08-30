@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\Book;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class BooksApiTest extends TestCase
@@ -23,7 +21,7 @@ class BooksApiTest extends TestCase
     }
 
     /** @test */
-    public function it_paginates_books_by_15_items()
+    public function it_paginates_books_by_15()
     {
         $books = Book::factory()->count(30)->create();
 
@@ -31,28 +29,50 @@ class BooksApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(15)
             ->assertExactJson($books->take(15)->toArray());
+    }
+
+    /** @test */
+    public function it_returns_the_first_page_of_books_implicitly()
+    {
+        $books = Book::factory()->count(15)->create();
+
+        $this->getJson('api/books')
+            ->assertExactJson($books->toArray());
+
+        $this->getJson('api/books?page=1')
+            ->assertExactJson($books->toArray());
+    }
+
+
+    /** @test */
+    public function it_returns_correct_books_per_page()
+    {
+        $books = Book::factory()->count(25)->create();
+
+        $this->getJson('api/books?page=1')
+            ->assertOk()
+            ->assertJsonCount(15)
+            ->assertExactJson($books->take(15)->toArray());
 
         $this->getJson('api/books?page=2')
             ->assertOk()
-            ->assertJsonCount(15)
-            ->assertExactJson([...$books->take(-15)->toArray()]);
-
-        $this->getJson('api/books?page=3')
-            ->assertOk()
-            ->assertJsonCount(0)
-            ->assertExactJson([]);
+            ->assertJsonCount(10)
+            ->assertExactJson([...$books->take(-10)->toArray()]);
     }
+
 
     /** @test */
     public function it_searches_for_books_by_title_and_author()
     {
         Book::factory()->count(30)->create();
+
         $books = collect([
             Book::factory()->create(['title' => 'QUERY']),
-            Book::factory()->create(['author' => 'QUERY']),
             Book::factory()->create(['title' => 'query']),
-            Book::factory()->create(['author' => 'query']),
             Book::factory()->create(['title' => 'helloqueryhello']),
+
+            Book::factory()->create(['author' => 'QUERY']),
+            Book::factory()->create(['author' => 'query']),
             Book::factory()->create(['author' => 'helloqueryhello']),
         ]);
 
@@ -65,14 +85,15 @@ class BooksApiTest extends TestCase
     /** @test */
     public function it_gets_book_by_id()
     {
-        Book::factory()->create(['id' => 5]);
+        $book = Book::create([
+            'id' => 5,
+            'title' => 'Title',
+            'author' => 'John Doe'
+        ]);
 
         $this->getJson('api/books/5')
             ->assertOk()
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->where('id', 5)
-                     ->etc()
-            );
+            ->assertExactJson($book->toArray());
     }
 
     /** @test */

@@ -40,7 +40,7 @@ class BookController extends Controller
 
         if (! $book) {
             return response()->json(
-                ["error" => "book of id $id does not exist."],
+                ['error' => 'book of id ' . $id . ' does not exist.'],
                 JsonResponse::HTTP_NOT_FOUND
             );
         }
@@ -64,11 +64,11 @@ class BookController extends Controller
 
         if (! $deleted) {
             return response()->json(
-                ["error" => "book of id $id does not exist."],
+                ['error' => 'book of id ' . $id . ' does not exist.'],
                 JsonResponse::HTTP_NOT_FOUND
             );
         }
 
-        return response()->json(["success" => "book of id $id has been deleted."]);
+        return response()->json(['success' => 'book of id ' . $id . ' has been deleted.']);
     }
 }

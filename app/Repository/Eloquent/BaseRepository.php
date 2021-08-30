@@ -8,11 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 abstract class BaseRepository implements EloquentRepositoryInterface
 {
-    protected Model $model;
-
-    public function __construct(Model $model)
-    {
-        $this->model = $model;
+    public function __construct(
+        protected Model $model
+    ) {
     }
 
     public function all(): Collection|array

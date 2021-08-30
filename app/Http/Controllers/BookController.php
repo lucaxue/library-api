@@ -8,11 +8,9 @@ use App\Repository\BookRepositoryInterface;
 
 class BookController extends Controller
 {
-    private BookRepositoryInterface $bookRepository;
-
-    public function __construct(BookRepositoryInterface $bookRepository)
-    {
-        $this->bookRepository = $bookRepository;
+    public function __construct(
+        private BookRepositoryInterface $bookRepository
+    ) {
     }
 
     public function index(Request $request): JsonResponse

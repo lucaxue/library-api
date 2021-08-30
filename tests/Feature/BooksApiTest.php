@@ -65,17 +65,96 @@ class BooksApiTest extends TestCase
     /** @test */
     public function it_gets_book_by_id()
     {
-        $this->getJson('api/books/5')
-            ->assertNotFound()
-            ->assertExactJson(['error' => 'book of id 5 does not exist.']);
-
         Book::factory()->create(['id' => 5]);
 
         $this->getJson('api/books/5')
             ->assertOk()
-            ->assertJson(fn ($json) => $json
-                ->where('id', 5)
-                ->etc()
+            ->assertJson(
+                fn ($json) => $json
+                    ->where('id', 5)
+                    ->etc()
             );
+    }
+
+    /** @test */
+    public function it_returns_not_found_when_getting_book_with_invalid_id()
+    {
+        $this->getJson('api/books/5')
+            ->assertNotFound()
+            ->assertExactJson(['error' => 'book of id 5 does not exist.']);
+    }
+
+    /** @test */
+    public function it_stores_a_new_book()
+    {
+        $this->postJson('api/books', $book = ['title' => 'Title', 'author' => 'John Doe'])
+            ->assertCreated()
+            ->assertJson($book);
+
+        $this->assertDatabaseHas('books', $book);
+    }
+
+    /** @test */
+    public function it_requires_both_title_and_author_when_storing_a_book()
+    {
+        $this->postJson('api/books', [])
+            ->assertJsonValidationErrors(['title', 'author']);
+
+        $this->postJson('api/books', ['title' => 'Title'])
+            ->assertJsonValidationErrors(['author']);
+
+        $this->postJson('api/books', ['author' => 'John Doe'])
+            ->assertJsonValidationErrors(['title']);
+    }
+
+    /** @test */
+    public function it_updates_an_existing_book_by_id_and_data()
+    {
+        Book::create($originalBook = [
+            'id' => 5,
+            'title' => 'Original Title',
+            'author' => 'Original Author'
+        ]);
+
+        $this->putJson('api/books/5', $newBook = ['title' => 'New Title', 'author' => 'New Author'])
+            ->assertOk()
+            ->assertJson($newBook);
+
+        $this->assertDatabaseHas('books', $newBook);
+        $this->assertDatabaseMissing('books', $originalBook);
+    }
+
+    /** @test */
+    public function it_requires_both_title_and_author_when_updating_a_book()
+    {
+        Book::factory()->create(['id' => 5]);
+
+        $this->putJson('api/books/5', [])
+            ->assertJsonValidationErrors(['title', 'author']);
+
+        $this->putJson('api/books/5', ['title' => 'Title'])
+            ->assertJsonValidationErrors(['author']);
+
+        $this->putJson('api/books/5', ['author' => 'John Doe'])
+            ->assertJsonValidationErrors(['title']);
+    }
+
+    /** @test */
+    public function it_deletes_an_existing_book_by_id()
+    {
+        $book = Book::factory()->create(['id' => 5]);
+
+        $this->deleteJson('api/books/5')
+            ->assertOk()
+            ->assertExactJson(["success" => "book of id 5 has been deleted."]);
+
+        $this->assertDatabaseMissing('books', $book->toArray());
+    }
+
+    /** @test */
+    public function it_returns_not_found_when_deleting_a_non_existent_book()
+    {
+        $this->deleteJson('api/books/5')
+            ->assertNotFound();
     }
 }

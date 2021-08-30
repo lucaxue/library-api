@@ -77,7 +77,7 @@ Please see [`/tests/Feature/BookApiTest.php`](https://github.com/lucaxue/library
 -   Run the tests
 
     ```bash
-    php artisan test
+    php artisan test tests/Feature/BooksApiTest.php
     ```
 
 </details>

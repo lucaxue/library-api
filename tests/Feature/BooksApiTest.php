@@ -69,10 +69,9 @@ class BooksApiTest extends TestCase
 
         $this->getJson('api/books/5')
             ->assertOk()
-            ->assertJson(
-                fn ($json) => $json
-                    ->where('id', 5)
-                    ->etc()
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->where('id', 5)
+                     ->etc()
             );
     }
 

@@ -155,6 +155,7 @@ class BooksApiTest extends TestCase
     public function it_returns_not_found_when_deleting_a_non_existent_book()
     {
         $this->deleteJson('api/books/5')
-            ->assertNotFound();
+            ->assertNotFound()
+            ->assertExactJson(["error" => "book of id 5 does not exist."]);
     }
 }

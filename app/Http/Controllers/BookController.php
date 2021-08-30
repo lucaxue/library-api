@@ -16,7 +16,9 @@ class BookController extends Controller
     public function index(Request $request): JsonResponse
     {
         if ($request->has('search')) {
-            return response()->json($this->repository->search($request->query('search')));
+            return response()->json($this->repository->search(
+                $request->query('search')
+            ));
         }
 
         return response()->json($this->repository->all());
@@ -36,7 +38,7 @@ class BookController extends Controller
     {
         $book = $this->repository->findById($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json(
                 ["error" => "book of id $id does not exist."],
                 JsonResponse::HTTP_NOT_FOUND
@@ -60,7 +62,7 @@ class BookController extends Controller
     {
         $deleted = $this->repository->deleteById($id);
 
-        if (!$deleted) {
+        if (! $deleted) {
             return response()->json(
                 ["error" => "book of id $id does not exist."],
                 JsonResponse::HTTP_NOT_FOUND

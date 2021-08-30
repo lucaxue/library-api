@@ -3,9 +3,8 @@
 namespace App\Repository\Eloquent;
 
 use App\Models\Book;
-use App\Repository\EloquentRepositoryInterface;
 
-class BookRepository extends Repository implements EloquentRepositoryInterface
+class BookRepository extends BaseRepository
 {
     public function __construct(Book $book)
     {

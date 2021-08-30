@@ -4,27 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Repository\BookRepositoryInterface;
+use App\Repository\Eloquent\BookRepository;
 
 class BookController extends Controller
 {
     public function __construct(
-        private BookRepositoryInterface $bookRepository
+        private BookRepository $repository
     ) {
     }
 
     public function index(Request $request): JsonResponse
     {
         if ($request->has('search')) {
-            return response()->json($this->bookRepository->search($request->query('search')));
+            return response()->json($this->repository->search($request->query('search')));
         }
 
-        return response()->json($this->bookRepository->all());
+        return response()->json($this->repository->all());
     }
 
     public function store(Request $request): JsonResponse
     {
-        $book = $this->bookRepository->create($request->validate([
+        $book = $this->repository->create($request->validate([
             'title' => 'required',
             'author' => 'required'
         ]));
@@ -34,7 +34,7 @@ class BookController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $book = $this->bookRepository->findById($id);
+        $book = $this->repository->findById($id);
 
         if (! $book) {
             return response()->json(
@@ -48,7 +48,7 @@ class BookController extends Controller
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $book = $this->bookRepository->update($request->validate([
+        $book = $this->repository->update($request->validate([
             'title' => 'required',
             'author' => 'required'
         ]), $id);
@@ -58,7 +58,7 @@ class BookController extends Controller
 
     public function destroy(int $id): JsonResponse
     {
-        $deleted = $this->bookRepository->deleteById($id);
+        $deleted = $this->repository->deleteById($id);
 
         if (! $deleted) {
             return response()->json(

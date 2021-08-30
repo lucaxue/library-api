@@ -26,6 +26,7 @@ class BookFactory extends Factory
             'title' => $this->faker->word(),
             'author' => $this->faker->name(),
             'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

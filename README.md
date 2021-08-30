@@ -2,6 +2,10 @@
 
 A simple library RESTful API, made with Laravel for a MySQL database.
 
+![Laravel](https://img.shields.io/badge/Laravel-2e2e2e?logo=laravel)
+![MySQL](https://img.shields.io/badge/MySQL-2e2e2e?logo=mysql)
+
+
 <br>
 
 ## 📄 API Specs
@@ -44,31 +48,43 @@ A simple library RESTful API, made with Laravel for a MySQL database.
 
 ## ⚙️ Setting Up
 
--   Install dependencies
+- Install dependencies
+
+    ```bash
+    ./vendor/bin/composer install
     ```
-    composer install
-    ```
--   Make a new MySQL database, and name it library
--   Copy and add your connection details to the `.env` file
-    ```
+
+- Make a new MySQL database, and name it library
+- Copy and add your connection details to the `.env` file
+
+    ```bash
     cp .env.example .env
     ```
--   Generate your new app key
-    ```
+
+- Generate your new app key
+
+    ```bash
     php artisan key:generate
     ```
--   Migrate the tables to your database
-    ```
+
+- Migrate the tables to your database
+
+    ```bash
     php artisan migrate
     ```
--   Add dummy data to your database
-    ```
+
+- Add dummy data to your database (optional)
+
+    ```bash
     php artisan tinker
     ```
-    ```
+
+    ```php
     Book::factory()->count(100)->create()
     ```
--   Run the app on your local port
-    ```
+
+- Run the app on your local port
+
+    ```bash
     php artisan serve
     ```

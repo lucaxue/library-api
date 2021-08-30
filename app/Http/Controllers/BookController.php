@@ -15,87 +15,60 @@ class BookController extends Controller
         $this->bookRepository = $bookRepository;
     }
 
-    /**
-     * Display a listing of the resource.
-     * 
-     * @param Illuminate\Http\Request $request
-     * @return Illuminate\Http\JsonResponse
-     */
     public function index(Request $request): JsonResponse
     {
-        $query = $request->query('search');
+        if ($request->has('search')) {
+            return response()->json($this->bookRepository->search($request->query('search')));
+        }
 
-        $books = $query ?
-            $this->bookRepository->search($query) :
-            $this->bookRepository->all();
-
-        return response()->json($books, 200);
+        return response()->json($this->bookRepository->all());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * 
-     * @param Illuminate\Http\Request $request
-     * @return Illuminate\Http\JsonResponse
-     */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $book = $this->bookRepository->create($request->validate([
             'title' => 'required',
             'author' => 'required'
-        ]);
+        ]));
 
-        $book = $this->bookRepository->create($request->all());
-
-        return response()->json($book, 200);
+        return response()->json($book, JsonResponse::HTTP_CREATED);
     }
 
-    /**
-     * Display the specified resource.
-     * 
-     * @param int $id
-     * @return Illuminate\Http\JsonResponse
-     */
     public function show(int $id): JsonResponse
     {
         $book = $this->bookRepository->findById($id);
 
-        return response()->json($book, 200);
+        if (! $book) {
+            return response()->json(
+                ["error" => "book of id $id does not exist."],
+                JsonResponse::HTTP_NOT_FOUND
+            );
+        }
+
+        return response()->json($book);
     }
 
-    /**
-     * Update the specified resource in storage.
-     * 
-     * @param Illuminate\Http\Request $request
-     * @param int $id
-     * @return Illuminate\Http\JsonResponse
-     */
     public function update(Request $request, int $id): JsonResponse
     {
-        $request->validate([
+        $book = $this->bookRepository->update($request->validate([
             'title' => 'required',
             'author' => 'required'
-        ]);
+        ]), $id);
 
-        $book = $this->bookRepository->update($request->all(), $id);
-
-        return response()->json($book, 200);
+        return response()->json($book);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * 
-     * @param int $id
-     * @return Illuminate\Http\JsonResponse
-     */
     public function destroy(int $id): JsonResponse
     {
-        $isDeleted = $this->bookRepository->deleteById($id);
+        $deleted = $this->bookRepository->deleteById($id);
 
-        $message =  $isDeleted ?
-            [["success" => "book of id $id has been deleted."], 200] :
-            [["error" => "book of id $id does not exist."], 400];
+        if (! $deleted) {
+            return response()->json(
+                ["error" => "book of id $id does not exist."],
+                JsonResponse::HTTP_NOT_FOUND
+            );
+        }
 
-        return response()->json(...$message);
+        return response()->json(["success" => "book of id $id has been deleted."]);
     }
 }

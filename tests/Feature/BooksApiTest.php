@@ -34,13 +34,12 @@ class BooksApiTest extends TestCase
     /** @test */
     public function it_returns_the_first_page_of_books_implicitly()
     {
-        $books = Book::factory()->count(15)->create();
+        Book::factory()->count(15)->create();
 
-        $this->getJson('api/books')
-            ->assertExactJson($books->toArray());
-
-        $this->getJson('api/books?page=1')
-            ->assertExactJson($books->toArray());
+        $this->assertEquals(
+            $this->getJson('api/books?page=1')->getData(),
+            $this->getJson('api/books')->getData(),
+        );
     }
 
 

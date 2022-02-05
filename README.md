@@ -11,15 +11,16 @@ Please see [`/tests/Feature/BookApiTest.php`](https://github.com/lucaxue/library
 
 ### Route: `/api/books`
 
-| HTTP Method | Endpoint      | Action                             |
-| ----------- | ------------- | ---------------------------------- |
-| **GET**     | `/`           | Get all books                      |
-| **GET**     | `/{id}`       | Get book by id                     |
-| **GET**     | `?search=foo` | Search books by title or author    |
-| **GET**     | `?page=3`     | Paginate books (15 books per page) |
-| **POST**    | `/`           | Store a new book                   |
-| **PUT**     | `/{id}`       | Update an existing book            |
-| **DELETE**  | `/{id}`       | Delete a book                      |
+| HTTP Method | Endpoint      | Action                          |
+| ----------- | ------------- | ------------------------------- |
+| **GET**     | `/`           | Retrieve paginated books        |
+| **GET**     | `?search=foo` | Search books by title or author |
+| **GET**     | `?page=3`     | Specify page                    |
+| **GET**     | `?per_page=3` | Specify books per page          |
+| **GET**     | `/{id}`       | Retrieve book                   |
+| **POST**    | `/`           | Create a book                   |
+| **PUT**     | `/{id}`       | Update an existing book         |
+| **DELETE**  | `/{id}`       | Delete a book                   |
 
 <br>
 
@@ -30,17 +31,16 @@ Please see [`/tests/Feature/BookApiTest.php`](https://github.com/lucaxue/library
 -   Install dependencies
 
     ```bash
-    ./vendor/bin/composer install
+    composer install
     ```
 
--   Make a new MySQL database, and name it library
--   Copy and add your connection details to the `.env` file
+-   Create a new MySQL database named library and add your connection details to the `.env` file
 
     ```bash
     cp .env.example .env
     ```
 
--   Generate your new app key
+-   Generate your application key
 
     ```bash
     php artisan key:generate
@@ -59,7 +59,7 @@ Please see [`/tests/Feature/BookApiTest.php`](https://github.com/lucaxue/library
     ```
 
     ```php
-    Book::factory()->count(100)->create()
+    Book::factory()->count(100)->create();
     ```
 
 -   Run the app on your local port
@@ -77,7 +77,7 @@ Please see [`/tests/Feature/BookApiTest.php`](https://github.com/lucaxue/library
 -   Run the tests
 
     ```bash
-    php artisan test 
+    php artisan test
     ```
 
 </details>

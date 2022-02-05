@@ -2,73 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\Book;
 use Illuminate\Http\JsonResponse;
-use App\Repositories\Contracts\BookRepositoryInterface;
+use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    public function __construct(
-        private BookRepositoryInterface $repository
-    ) {
-    }
-
-    public function index(Request $request): JsonResponse
+    public function index(Request $request) : JsonResponse
     {
-        if ($request->has('search')) {
-            return response()->json($this->repository->search(
-                $request->query('search')
-            ));
+        $query = Book::query();
+
+        if ($request->filled('search')) {
+            $query->where(function ($query) use ($request) {
+                $query
+                    ->where('title', 'LIKE', '%'.$request->get('search').'%')
+                    ->orWhere('author', 'LIKE', '%'.$request->get('search').'%');
+            });
         }
 
-        return response()->json($this->repository->all());
+        return response()->json($query->paginate($request->get('per_page', 50)));
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request) : JsonResponse
     {
-        $book = $this->repository->create($request->validate([
+        $attributes = $request->validate([
             'title' => 'required',
-            'author' => 'required'
-        ]));
+            'author' => 'required',
+        ]);
 
-        return response()->json($book, JsonResponse::HTTP_CREATED);
+        $book = Book::create($attributes);
+
+        return response()->json(['id' => $book->id], JsonResponse::HTTP_CREATED);
     }
 
-    public function show(int $id): JsonResponse
+    public function show(Book $book) : JsonResponse
     {
-        $book = $this->repository->findById($id);
-
-        if (! $book) {
-            return response()->json(
-                ['error' => 'book of id ' . $id . ' does not exist.'],
-                JsonResponse::HTTP_NOT_FOUND
-            );
-        }
-
         return response()->json($book);
     }
 
-    public function update(Request $request, int $id): JsonResponse
-    {
-        $book = $this->repository->update($request->validate([
-            'title' => 'required',
-            'author' => 'required'
-        ]), $id);
+    public function update(
+        Request $request,
+        Book $book
+    ) : JsonResponse {
 
-        return response()->json($book);
+        $attributes = $request->validate([
+            'title' => 'required',
+            'author' => 'required',
+        ]);
+
+        $book->update($attributes);
+
+        return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(Book $book) : JsonResponse
     {
-        $deleted = $this->repository->deleteById($id);
+        $book->delete();
 
-        if (! $deleted) {
-            return response()->json(
-                ['error' => 'book of id ' . $id . ' does not exist.'],
-                JsonResponse::HTTP_NOT_FOUND
-            );
-        }
-
-        return response()->json(['success' => 'book of id ' . $id . ' has been deleted.']);
+        return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
 }

@@ -2,179 +2,151 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class BooksApiTest extends TestCase
 {
     use RefreshDatabase;
 
     /** @test */
-    public function it_gets_all_books()
+    public function it_retrieves_books()
     {
-        $books = Book::factory()->count(10)->create();
+        $books = Book::factory(10)->create();
 
-        $this->getJson('api/books')
+        $this
+            ->getJson('api/books')
             ->assertOk()
-            ->assertExactJson($books->toArray());
+            ->assertJsonFragment(['total' => 10])
+            ->assertJson(['data' => $books->toArray()]);
     }
 
     /** @test */
-    public function it_paginates_books_by_15()
+    public function it_paginates_books()
     {
-        $books = Book::factory()->count(30)->create();
+        $books = Book::factory(10)->create();
 
-        $this->getJson('api/books')
+        $this
+            ->json('GET', 'api/books', ['page' => 2, 'per_page' => 5])
             ->assertOk()
-            ->assertJsonCount(15)
-            ->assertExactJson($books->take(15)->toArray());
+            ->assertJsonFragment(['current_page' => 2])
+            ->assertJsonFragment(['per_page' => 5])
+            ->assertJsonFragment(['from' => 6])
+            ->assertJsonFragment(['to' => 10])
+            ->assertJson(['data' => $books->take(-5)->values()->toArray()]);
     }
 
     /** @test */
-    public function it_returns_the_first_page_of_books_implicitly()
+    public function it_searches_books()
     {
-        Book::factory()->count(15)->create();
+        $books = Book::factory(3)->sequence(
+            ['title' => 'Thinking, Fast and Slow'],
+            ['author' => 'John Minks'],
+            ['title' => 'Atomic Habits'],
+        )->create();
 
-        $this->assertEquals(
-            $this->getJson('api/books?page=1')->getData(),
-            $this->getJson('api/books')->getData(),
-        );
-    }
-
-
-    /** @test */
-    public function it_returns_correct_books_per_page()
-    {
-        $books = Book::factory()->count(25)->create();
-
-        $this->getJson('api/books?page=1')
+        $this
+            ->json('GET', 'api/books', ['search' => 'ink'])
             ->assertOk()
-            ->assertJsonCount(15)
-            ->assertExactJson($books->take(15)->toArray());
-
-        $this->getJson('api/books?page=2')
-            ->assertOk()
-            ->assertJsonCount(10)
-            ->assertExactJson([...$books->take(-10)->toArray()]);
-    }
-
-
-    /** @test */
-    public function it_searches_for_books_by_title_and_author()
-    {
-        Book::factory()->count(30)->create();
-
-        $books = collect([
-            Book::factory()->create(['title' => 'QUERY']),
-            Book::factory()->create(['title' => 'query']),
-            Book::factory()->create(['title' => 'helloqueryhello']),
-
-            Book::factory()->create(['author' => 'QUERY']),
-            Book::factory()->create(['author' => 'query']),
-            Book::factory()->create(['author' => 'helloqueryhello']),
-        ]);
-
-        $this->getJson('api/books?search=query')
-            ->assertOk()
-            ->assertJsonCount(6)
-            ->assertExactJson($books->toArray());
+            ->assertJsonFragment(['total' => 2])
+            ->assertJsonFragment($books[0]->toArray())
+            ->assertJsonFragment($books[1]->toArray());
     }
 
     /** @test */
-    public function it_gets_book_by_id()
+    public function it_retrieves_an_existing_book()
     {
-        $book = Book::create([
-            'id' => 5,
-            'title' => 'Title',
-            'author' => 'John Doe'
-        ]);
+        $book = Book::factory()->create();
 
-        $this->getJson('api/books/5')
+        $this
+            ->getJson('api/books/'.$book->id)
             ->assertOk()
             ->assertExactJson($book->toArray());
     }
 
     /** @test */
-    public function it_returns_not_found_when_getting_book_with_invalid_id()
+    public function it_cannot_retrieve_unknown_books()
     {
-        $this->getJson('api/books/5')
-            ->assertNotFound()
-            ->assertExactJson(['error' => 'book of id 5 does not exist.']);
+        $this
+            ->getJson('api/books/'.rand())
+            ->assertNotFound();
     }
 
     /** @test */
-    public function it_stores_a_new_book()
+    public function it_creates_a_book()
     {
-        $this->postJson('api/books', $book = ['title' => 'Title', 'author' => 'John Doe'])
+        $json = $this
+            ->postJson('api/books', [
+                'title' => 'My Book',
+                'author' => 'John Doe',
+            ])
             ->assertCreated()
-            ->assertJson($book);
+            ->assertJsonStructure(['id'])
+            ->getData();
 
-        $this->assertDatabaseHas('books', $book);
+        $this->assertDatabaseHas(Book::class, [
+            'id' => $json->id,
+            'title' => 'My Book',
+            'author' => 'John Doe',
+        ]);
     }
 
     /** @test */
-    public function it_requires_both_title_and_author_when_storing_a_book()
+    public function it_guards_against_missing_fields()
     {
-        $this->postJson('api/books', [])
+        $this
+            ->postJson('api/books', [])
             ->assertJsonValidationErrors(['title', 'author']);
 
-        $this->postJson('api/books', ['title' => 'Title'])
+        $this
+            ->postJson('api/books', ['title' => 'My Book'])
             ->assertJsonValidationErrors(['author']);
 
-        $this->postJson('api/books', ['author' => 'John Doe'])
+        $this
+            ->postJson('api/books', ['author' => 'John Doe'])
             ->assertJsonValidationErrors(['title']);
     }
 
     /** @test */
-    public function it_updates_an_existing_book_by_id_and_data()
+    public function it_updates_an_existing_book()
     {
-        Book::create($originalBook = [
-            'id' => 5,
-            'title' => 'Original Title',
-            'author' => 'Original Author'
+        $book = Book::factory()->create([
+            'title' => 'My Book',
+            'author' => 'John Doe',
         ]);
 
-        $this->putJson('api/books/5', $newBook = ['title' => 'New Title', 'author' => 'New Author'])
-            ->assertOk()
-            ->assertJson($newBook);
+        $this
+            ->putJson('api/books/'.$book->id, [
+                'title' => 'The Book',
+                'author' => 'John James Doe',
+            ])
+            ->assertNoContent();
 
-        $this->assertDatabaseHas('books', $newBook);
-        $this->assertDatabaseMissing('books', $originalBook);
+        $this->assertDatabaseHas(Book::class, [
+            'id' => $book->id,
+            'title' => 'The Book',
+            'author' => 'John James Doe',
+        ]);
     }
 
     /** @test */
-    public function it_requires_both_title_and_author_when_updating_a_book()
+    public function it_deletes_an_existing_book()
     {
-        Book::factory()->create(['id' => 5]);
+        $book = Book::factory()->create();
 
-        $this->putJson('api/books/5', [])
-            ->assertJsonValidationErrors(['title', 'author']);
+        $this
+            ->deleteJson('api/books/'.$book->id)
+            ->assertNoContent();
 
-        $this->putJson('api/books/5', ['title' => 'Title'])
-            ->assertJsonValidationErrors(['author']);
-
-        $this->putJson('api/books/5', ['author' => 'John Doe'])
-            ->assertJsonValidationErrors(['title']);
+        $this->assertDeleted($book);
     }
 
     /** @test */
-    public function it_deletes_an_existing_book_by_id()
+    public function it_cannot_delete_unknown_books()
     {
-        $book = Book::factory()->create(['id' => 5]);
-
-        $this->deleteJson('api/books/5')
-            ->assertOk()
-            ->assertExactJson(["success" => "book of id 5 has been deleted."]);
-
-        $this->assertDatabaseMissing('books', $book->toArray());
-    }
-
-    /** @test */
-    public function it_returns_not_found_when_deleting_a_non_existent_book()
-    {
-        $this->deleteJson('api/books/5')
-            ->assertNotFound()
-            ->assertExactJson(["error" => "book of id 5 does not exist."]);
+        $this
+            ->deleteJson('api/books/'.rand())
+            ->assertNotFound();
     }
 }

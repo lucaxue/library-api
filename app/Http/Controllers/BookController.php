@@ -2,25 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
+use App\Http\Requests\RetrieveBooksRequest;
+use App\Models\Book\Book;
+use App\Models\Book\BookFinder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    public function index(Request $request) : JsonResponse
-    {
-        $query = Book::query();
+    public function index(
+        BookFinder $finder,
+        RetrieveBooksRequest $request,
+    ) : JsonResponse {
 
-        if ($request->filled('search')) {
-            $query->where(function ($query) use ($request) {
-                $query
-                    ->where('title', 'LIKE', '%'.$request->get('search').'%')
-                    ->orWhere('author', 'LIKE', '%'.$request->get('search').'%');
-            });
-        }
+        $books = $finder->all(
+            $request->filters(),
+            $request->get('per_page', 50)
+        );
 
-        return response()->json($query->paginate($request->get('per_page', 50)));
+        return response()->json($books);
     }
 
     public function store(Request $request) : JsonResponse

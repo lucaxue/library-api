@@ -55,6 +55,19 @@ class BooksApiTest extends TestCase
     }
 
     /** @test */
+    public function it_retrieves_books_by_id()
+    {
+        $books = Book::factory(3)->create();
+
+        $this
+            ->json('GET', 'api/books', ['id' => $books[0]->id.','.$books[2]->id])
+            ->assertOk()
+            ->assertJsonFragment(['total' => 2])
+            ->assertJsonFragment($books[0]->toArray())
+            ->assertJsonFragment($books[2]->toArray());
+    }
+
+    /** @test */
     public function it_retrieves_an_existing_book()
     {
         $book = Book::factory()->create();

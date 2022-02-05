@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Book\Filters\Filters;
+use App\Models\Book\Filters\IdFilter;
 use App\Models\Book\Filters\SearchFilter;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -15,6 +16,7 @@ class RetrieveBooksRequest extends FormRequest
         foreach ($this->except(['page', 'per_page']) as $filter => $value) {
             $filters[] = match ($filter) {
                 'search' => new SearchFilter($value),
+                'id' => new IdFilter(...explode(',', $value))
             };
         }
 

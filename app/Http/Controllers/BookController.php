@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RetrieveBooksRequest;
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book\Book;
 use App\Models\Book\BookFinder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
@@ -23,14 +24,9 @@ class BookController extends Controller
         return response()->json($books);
     }
 
-    public function store(Request $request) : JsonResponse
+    public function store(StoreBookRequest $request) : JsonResponse
     {
-        $attributes = $request->validate([
-            'title' => 'required',
-            'author' => 'required',
-        ]);
-
-        $book = Book::create($attributes);
+        $book = Book::create($request->validated());
 
         return response()->json(['id' => $book->id], JsonResponse::HTTP_CREATED);
     }
@@ -41,16 +37,11 @@ class BookController extends Controller
     }
 
     public function update(
-        Request $request,
+        UpdateBookRequest $request,
         Book $book
     ) : JsonResponse {
 
-        $attributes = $request->validate([
-            'title' => 'required',
-            'author' => 'required',
-        ]);
-
-        $book->update($attributes);
+        $book->update($request->validated());
 
         return response()->json(null, JsonResponse::HTTP_NO_CONTENT);
     }
